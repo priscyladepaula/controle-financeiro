@@ -72,7 +72,6 @@ public class CategoriaService {
     }
 
     public void excluirCategoria(Long id) {
-        // Verifica se a categoria existe
         if (!categoriaRepository.existsById(id)) {
             throw new NoSuchElementException("Categoria não encontrada");
         }
