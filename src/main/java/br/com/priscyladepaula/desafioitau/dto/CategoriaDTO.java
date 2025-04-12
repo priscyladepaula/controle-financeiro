@@ -16,11 +16,11 @@ public class CategoriaDTO {
     private String nome;
 
     @JsonProperty("id_categoria")
-    private Long idCategoria;
+    private Long id;
 
     public CategoriaDTO(CategoriaEntity categoria) {
         this.nome = categoria.getNome();
-        this.idCategoria = categoria.getId();
+        this.id = categoria.getId();
     }
 
 }
