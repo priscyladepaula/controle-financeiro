@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/v1")
+@RequestMapping("/v1/subcategorias")
 public class SubcategoriaController {
 
     private final SubcategoriaService subcategoriaService;
@@ -19,42 +19,48 @@ public class SubcategoriaController {
         this.subcategoriaService = subcategoriaService;
     }
 
-    @PostMapping("/subcategorias")
+    @PostMapping
     public ResponseEntity<SubcategoriaDTO> criarSubcategoria(@Valid @RequestBody SubcategoriaDTO subcategoriaDTO) {
+
         SubcategoriaDTO subcategoriaCriada = subcategoriaService.criarSubcategoria(subcategoriaDTO);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(subcategoriaCriada);
     }
 
-    @GetMapping("/subcategorias")
+    @GetMapping
     public ResponseEntity<List<SubcategoriaDTO>> listarSubcategorias() {
-        List<SubcategoriaDTO> subcategorias = subcategoriaService.listarSubcategorias();
 
-        return ResponseEntity.status(HttpStatus.OK).body(subcategorias);
+        return ResponseEntity.ok(subcategoriaService.listarSubcategorias());
     }
 
-    @GetMapping("/subcategorias/buscar")
-    public ResponseEntity<List<SubcategoriaDTO>> buscarSubcategoriasPorNome(@RequestParam String nome) {
+    @GetMapping("/{id}")
+    public ResponseEntity<SubcategoriaDTO> buscarSubcategoriaPorId(@PathVariable Long id) {
+
+        SubcategoriaDTO subcategoriaDTO = subcategoriaService.buscarSubcategoriaPorId(id);
+
+        return ResponseEntity.ok(subcategoriaDTO);
+    }
+
+    @GetMapping("/buscar")
+    public ResponseEntity<SubcategoriaDTO> buscarSubcategoriasPorNome(@RequestParam String nome) {
+
         return ResponseEntity.ok(subcategoriaService.buscarPorNome(nome));
     }
 
-    @GetMapping("/subcategorias/{id}")
-    public ResponseEntity<SubcategoriaDTO> buscarSubcategoria(@PathVariable Long id) {
-        SubcategoriaDTO subcategoria = subcategoriaService.buscarSubcategoriaPorId(id);
-
-        return ResponseEntity.status(HttpStatus.OK).body(subcategoria);
-    }
-
-    @PutMapping("/subcategorias/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<SubcategoriaDTO> editarSubcategoria(@PathVariable Long id,
                                                               @RequestBody SubcategoriaDTO subcategoriaDTO) {
-        SubcategoriaDTO subcategoriaAtualizada = subcategoriaService.editarSubcategoria(id, subcategoriaDTO);
-        return ResponseEntity.ok(subcategoriaAtualizada);
+
+        SubcategoriaDTO atualizado = subcategoriaService.editarSubcategoria(id, subcategoriaDTO);
+
+        return ResponseEntity.ok(atualizado);
     }
 
-    @DeleteMapping("/subcategorias/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletarSubcategoria(@PathVariable Long id) {
-        subcategoriaService.deletarSubcategoria(id);
+
+        subcategoriaService.excluirSubcategoria(id);
+
         return ResponseEntity.noContent().build();
     }
 

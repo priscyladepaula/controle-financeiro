@@ -26,6 +26,6 @@ public class SubcategoriaDTO {
     public SubcategoriaDTO(SubcategoriaEntity subcategoria) {
         this.id = subcategoria.getId();
         this.nome = subcategoria.getNome();
-        this.idCategoria = subcategoria.getId();
+        this.idCategoria = subcategoria.getCategoria().getId();
     }
 }
