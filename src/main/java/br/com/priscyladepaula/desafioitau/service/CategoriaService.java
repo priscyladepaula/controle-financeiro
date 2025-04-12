@@ -3,10 +3,13 @@ package br.com.priscyladepaula.desafioitau.service;
 import br.com.priscyladepaula.desafioitau.domain.CategoriaEntity;
 import br.com.priscyladepaula.desafioitau.dto.CategoriaDTO;
 import br.com.priscyladepaula.desafioitau.infrastructure.CategoriaRepository;
+import br.com.priscyladepaula.desafioitau.mapper.CategoriaMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -16,10 +19,12 @@ import java.util.stream.Collectors;
 @Service
 public class CategoriaService {
 
-    private CategoriaRepository categoriaRepository;
+    private final CategoriaRepository categoriaRepository;
+    private final CategoriaMapper categoriaMapper;
 
-    public CategoriaService(CategoriaRepository categoriaRepository) {
+    public CategoriaService(CategoriaRepository categoriaRepository, CategoriaMapper categoriaMapper) {
         this.categoriaRepository = categoriaRepository;
+        this.categoriaMapper = categoriaMapper;
     }
 
     public boolean existsByNome(String nome) {
@@ -28,47 +33,43 @@ public class CategoriaService {
 
     public CategoriaDTO criarCategoria(CategoriaDTO categoriaDTO) {
 
-        CategoriaEntity categoria = new CategoriaEntity(categoriaDTO);
+        CategoriaEntity categoria = categoriaMapper.toEntity(categoriaDTO);
+        CategoriaEntity categoriaSalva = categoriaRepository.save(categoria);
 
-        categoria = categoriaRepository.save(categoria);
-
-        return new CategoriaDTO(categoria);
+        return categoriaMapper.toDto(categoriaSalva);
     }
 
     public List<CategoriaDTO> listarCategorias() {
-        return categoriaRepository.findAll()
-                .stream()
-                .map(CategoriaDTO::new)
-                .toList();
+
+        List<CategoriaEntity> categorias = categoriaRepository.findAll();
+
+        return categoriaMapper.toDtoList(categorias);
     }
 
-    public Optional<CategoriaDTO> buscarCategoriaPorId(Long id) {
-        return categoriaRepository.findById(id)
-                .map(CategoriaDTO::new);
+    public CategoriaDTO buscarCategoriaPorId(Long id) {
+        CategoriaEntity categoria = categoriaRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Categoria não encontrada"));
+
+        return categoriaMapper.toDto(categoria);
     }
 
-    public List<CategoriaDTO> buscarCategoriaPorNome(String nome) {
+    public CategoriaDTO buscarCategoriaPorNome(String nome) {
 
-        List<CategoriaEntity> categorias;
+        CategoriaEntity categoria = categoriaRepository.findByNomeIgnoreCase(nome)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Categoria não encontrada"));
 
-        if (nome != null && !nome.isBlank()) {
-            categorias = categoriaRepository.findByNomeIgnoreCase(nome);
-        } else {
-            categorias = categoriaRepository.findAll();
-        }
-
-        return categorias.stream()
-                .map(CategoriaDTO::new)
-                .collect(Collectors.toList());
+        return categoriaMapper.toDto(categoria);
     }
 
 
-    public Optional<CategoriaDTO> editarCategoria(Long id, CategoriaDTO categoriaDTO) {
-        return categoriaRepository.findById(id).map(categoria -> {
-            categoria.setNome(categoriaDTO.getNome());
-            categoriaRepository.save(categoria);
-            return new CategoriaDTO(categoria);
-        });
+    public CategoriaDTO editarCategoria(Long id, CategoriaDTO categoriaDTO) {
+
+        CategoriaEntity existente = categoriaRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,"Categoria não encontrada!"));
+
+        existente.setNome(categoriaDTO.getNome());
+
+        return categoriaMapper.toDto(categoriaRepository.save(existente));
     }
 
     public void excluirCategoria(Long id) {
