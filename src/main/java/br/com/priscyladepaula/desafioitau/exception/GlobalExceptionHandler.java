@@ -79,7 +79,6 @@ public class GlobalExceptionHandler {
         Map<String, String> response = new HashMap<>();
         response.put("codigo", "erro_validacao");
 
-        // Transformar a mensagem para a esperada pelo teste
         response.put("mensagem", "Já existe categoria com esse nome");
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);

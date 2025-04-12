@@ -8,6 +8,8 @@ O **Controle Financeiro** é uma aplicação que permite gerenciar receitas e de
 - **H2 Database**
 - **JUnit** + **Mockito** (Testes Unitários)
 - **Swagger** (Documentação da API)
+- **Docker** (Containerização)
+- **Spring Actuator** (Monitoramento da aplicação)
 
 ## 🔧 Como rodar o projeto
 
@@ -17,12 +19,23 @@ git clone https://github.com/priscyladepaula/controle-financeiro.git
 cd controle-financeiro
 ```
 
-### 2️⃣ Configurar e rodar a aplicação
-Para rodar localmente:
+### 2️⃣ Rodar a aplicação localmente
+Para rodar a aplicação sem Docker:
 ```bash
 ./mvnw spring-boot:run
 ```
 A API ficará disponível em: `http://localhost:8080`
+
+### 3️⃣ Rodar a aplicação com Docker
+Caso tenha Docker instalado, você pode executar a aplicação dentro de um container:
+```bash
+docker build -t controle-financeiro .
+docker run -p 8080:8080 controle-financeiro
+```
+A API ficará disponível em: `http://localhost:8080`
+
+### 📄 Dockerfile
+O projeto já inclui um **Dockerfile** para facilitar a criação da imagem Docker.
 
 ## 📖 Documentação da API
 Os endpoints estão documentados no Swagger:
@@ -51,6 +64,7 @@ controle-financeiro/
 │   ├── security/         # Autenticação da api-key
 ├── src/main/java/br/com/priscyladepaula/desafioitau  # Testes unitários
 ├── README.md             # Documentação
+├── Dockerfile            # Configuração do Docker
 ```
 
 ## 🤝 Contribuição
@@ -62,5 +76,5 @@ controle-financeiro/
 
 ---
 
-📌 **Desenvolvido por [Priscyla de Paula](https://github.com/priscyladepaula/)**
+📌 **Desenvolvido por [Priscyladepaula](https://github.com/priscyladepaula/)**
 
