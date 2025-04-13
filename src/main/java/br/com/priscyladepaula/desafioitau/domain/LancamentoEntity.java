@@ -1,6 +1,5 @@
 package br.com.priscyladepaula.desafioitau.domain;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Data;
 

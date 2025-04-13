@@ -6,12 +6,18 @@ import br.com.priscyladepaula.desafioitau.domain.SubcategoriaEntity;
 import br.com.priscyladepaula.desafioitau.dto.BalancoDTO;
 import br.com.priscyladepaula.desafioitau.dto.CategoriaDTO;
 import br.com.priscyladepaula.desafioitau.dto.LancamentoDTO;
+import br.com.priscyladepaula.desafioitau.exception.CustomException;
+import br.com.priscyladepaula.desafioitau.exception.NotFoundException;
+import br.com.priscyladepaula.desafioitau.exception.ValidationException;
 import br.com.priscyladepaula.desafioitau.infrastructure.CategoriaRepository;
 import br.com.priscyladepaula.desafioitau.infrastructure.LancamentoRepository;
 import br.com.priscyladepaula.desafioitau.infrastructure.SubcategoriaRepository;
+import br.com.priscyladepaula.desafioitau.mapper.LancamentoMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -26,106 +32,99 @@ public class LancamentoService {
     private final LancamentoRepository lancamentoRepository;
     private final CategoriaRepository categoriaRepository;
     private final SubcategoriaRepository subcategoriaRepository;
+    private final LancamentoMapper lancamentoMapper;
 
-    public LancamentoService(LancamentoRepository lancamentoRepository, CategoriaRepository categoriaRepository, SubcategoriaRepository subcategoriaRepository) {
+    public LancamentoService(LancamentoRepository lancamentoRepository, CategoriaRepository categoriaRepository, SubcategoriaRepository subcategoriaRepository, LancamentoMapper lancamentoMapper) {
         this.lancamentoRepository = lancamentoRepository;
         this.categoriaRepository = categoriaRepository;
         this.subcategoriaRepository = subcategoriaRepository;
+        this.lancamentoMapper = lancamentoMapper;
     }
 
     public List<LancamentoDTO> listarLancamentos() {
-        return lancamentoRepository.findAll().stream().map(LancamentoDTO::new).collect(Collectors.toList());
+
+        List<LancamentoEntity> lancamentos = lancamentoRepository.findAll();
+
+        return lancamentoMapper.toDtoList(lancamentos);
     }
 
     public LancamentoDTO criarLancamento(LancamentoDTO lancamentoDTO) {
+
+        LancamentoEntity lancamento = lancamentoMapper.toEntity(lancamentoDTO);
+
         SubcategoriaEntity subcategoria = subcategoriaRepository.findById(lancamentoDTO.getIdSubcategoria())
-                .orElseThrow(() -> new NoSuchElementException("Subcategoria não encontrada"));
+                .orElseThrow(() -> new NotFoundException("Subcategoria não encontrada"));
 
         if(lancamentoDTO.getValor() == null || lancamentoDTO.getValor().compareTo(BigDecimal.ZERO) == 0) {
-            throw new IllegalArgumentException("O valor não pode ser zero.");
+            throw new ValidationException("O valor não pode ser zero.");
         }
 
-        LancamentoEntity lancamento = new LancamentoEntity();
-        lancamento.setSubcategoria(subcategoria);
+        LancamentoEntity lancamentoSalvo = lancamentoRepository.save(lancamento);
 
-        lancamento.setData(lancamentoDTO.getData() != null ? lancamentoDTO.getData() : LocalDate.now());
-
-        lancamento.setValor(lancamentoDTO.getValor());
-        lancamento.setComentario(lancamentoDTO.getComentario());
-
-        lancamento = lancamentoRepository.save(lancamento);
-
-        return new LancamentoDTO(lancamento);
+        return lancamentoMapper.toDto(lancamentoSalvo);
     }
 
-    public List<LancamentoDTO> buscarPorSubcategoria(Long idSubcategoria) {
+    public LancamentoDTO buscarPorSubcategoria(Long idSubcategoria) {
 
-        return lancamentoRepository.findBySubcategoriaId(idSubcategoria)
-                .stream()
-                .map(LancamentoDTO::new)
-                .toList();
+        LancamentoEntity lancamento = lancamentoRepository.findBySubcategoriaId(idSubcategoria)
+                .orElseThrow(() -> new NotFoundException("Lançamento não encontrado!"));
+
+        return lancamentoMapper.toDto(lancamento);
     }
 
 
     public LancamentoDTO editarLancamento(Long id, LancamentoDTO lancamentoDTO) {
-        LancamentoEntity lancamento = lancamentoRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Lançamento não encontrado"));
 
-        if(lancamentoDTO.getValor() != null) {
-            lancamento.setValor(lancamentoDTO.getValor());
-        }
-        if(lancamentoDTO.getComentario() != null) {
-            lancamento.setComentario(lancamentoDTO.getComentario());
-        }
-        if(lancamentoDTO.getData() != null) {
-            lancamento.setData(lancamentoDTO.getData());
-        }
+        LancamentoEntity existente = lancamentoRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Lançamento não encontrado!"));
 
-        lancamento = lancamentoRepository.save(lancamento);
-        return new LancamentoDTO(lancamento);
+        SubcategoriaEntity subcategoria = subcategoriaRepository.findById(lancamentoDTO.getIdSubcategoria())
+                .orElseThrow(() -> new NotFoundException("Subcategoria não encontrada!"));
+
+        existente.setValor(lancamentoDTO.getValor());
+        existente.setComentario(lancamentoDTO.getComentario());
+        existente.setData(lancamentoDTO.getData());
+        existente.setSubcategoria(subcategoria);
+
+        LancamentoEntity lancamentoSalvo = lancamentoRepository.save(existente);
+
+        return lancamentoMapper.toDto(lancamentoSalvo);
 
     }
 
     public BalancoDTO calcularBalanco(LocalDate dataInicial, LocalDate dataFinal, Long idCategoria) {
-        List<LancamentoEntity> lancamentos;
 
-        if (idCategoria != null) {
-            lancamentos = lancamentoRepository.findBySubcategoriaIdAndDataBetween(idCategoria, dataInicial, dataFinal);
-        } else {
-            lancamentos = lancamentoRepository.findByDataBetween(dataInicial, dataFinal);
-        }
+        //If ternário
+        List<LancamentoEntity> lancamentos = (idCategoria != null)
+                ? lancamentoRepository.findBySubcategoriaIdAndDataBetween(idCategoria, dataInicial, dataFinal)
+                : lancamentoRepository.findByDataBetween(dataInicial, dataFinal);
 
         BigDecimal receita = lancamentos.stream()
-                .filter(l -> l.getValor().compareTo(BigDecimal.ZERO) > 0)
                 .map(LancamentoEntity::getValor)
+                .filter(valor -> valor.compareTo(BigDecimal.ZERO) > 0)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal despesa = lancamentos.stream()
-                .filter(l -> l.getValor().compareTo(BigDecimal.ZERO) < 0)
                 .map(LancamentoEntity::getValor)
+                .filter(valor -> valor.compareTo(BigDecimal.ZERO) < 0)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal saldo = despesa.add(receita);
 
-        CategoriaDTO categoriaDTO = null;
-
-        if (idCategoria != null) {
-            CategoriaEntity categoriaEntity = categoriaRepository.findById(idCategoria).orElse(null);
-
-            if(categoriaEntity != null) {
-                categoriaDTO = new CategoriaDTO(categoriaEntity);
-            }
-        }
+        CategoriaDTO categoriaDTO = idCategoria != null
+                ? categoriaRepository.findById(idCategoria)
+                .map(CategoriaDTO::new)
+                .orElse(null) : null;
 
         return new BalancoDTO(categoriaDTO, receita, despesa, saldo);
     }
 
     public void excluirLancamento(Long id) {
 
-        if (!lancamentoRepository.existsById(id)) {
-            throw new NoSuchElementException("Lançamento não encontrado");
-        }
+        LancamentoEntity lancamento = lancamentoRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Lançamento não encontrado!"));
 
-        lancamentoRepository.deleteById(id);
+        lancamentoRepository.delete(lancamento);
     }
 
 }

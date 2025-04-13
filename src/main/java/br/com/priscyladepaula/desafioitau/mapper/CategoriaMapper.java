@@ -3,7 +3,6 @@ package br.com.priscyladepaula.desafioitau.mapper;
 import br.com.priscyladepaula.desafioitau.domain.CategoriaEntity;
 import br.com.priscyladepaula.desafioitau.dto.CategoriaDTO;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 import java.util.List;
