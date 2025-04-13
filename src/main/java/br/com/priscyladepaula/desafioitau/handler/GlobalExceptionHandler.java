@@ -1,20 +1,11 @@
 package br.com.priscyladepaula.desafioitau.handler;
 
 import br.com.priscyladepaula.desafioitau.dto.ErroDTO;
-import br.com.priscyladepaula.desafioitau.exception.CustomException;
-import br.com.priscyladepaula.desafioitau.exception.NotFoundException;
-import br.com.priscyladepaula.desafioitau.exception.ValidationException;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.dao.EmptyResultDataAccessException;
+import br.com.priscyladepaula.desafioitau.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.NoSuchElementException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -40,6 +31,15 @@ public class GlobalExceptionHandler {
 
         ErroDTO err = new ErroDTO("erro_nao_encontrado", ex.getMessage());
 
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(err);
+    }
+
+    @ExceptionHandler(OperacaoInvalidaException.class)
+    public ResponseEntity<ErroDTO> tratarErroOperacaoInvalida(OperacaoInvalidaException ex) {
+
+        ErroDTO err = new ErroDTO("erro_operacao_invalida", ex.getMessage());
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(err);
     }
+
 }

@@ -2,6 +2,8 @@ package br.com.priscyladepaula.desafioitau.service;
 
 import br.com.priscyladepaula.desafioitau.domain.CategoriaEntity;
 import br.com.priscyladepaula.desafioitau.dto.CategoriaDTO;
+import br.com.priscyladepaula.desafioitau.exception.NotFoundException;
+import br.com.priscyladepaula.desafioitau.handler.GlobalExceptionHandler;
 import br.com.priscyladepaula.desafioitau.infrastructure.CategoriaRepository;
 import br.com.priscyladepaula.desafioitau.mapper.CategoriaMapper;
 import org.springframework.http.HttpStatus;
@@ -16,6 +18,8 @@ public class CategoriaService {
 
     private final CategoriaRepository categoriaRepository;
     private final CategoriaMapper categoriaMapper;
+
+    private GlobalExceptionHandler errosGlobais;
 
     public CategoriaService(CategoriaRepository categoriaRepository, CategoriaMapper categoriaMapper) {
         this.categoriaRepository = categoriaRepository;
@@ -39,7 +43,7 @@ public class CategoriaService {
 
     public CategoriaDTO buscarCategoriaPorId(Long id) {
         CategoriaEntity categoria = categoriaRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Categoria não encontrada"));
+                .orElseThrow(() -> new NotFoundException("Categoria não encontrada!"));
 
         return categoriaMapper.toDto(categoria);
     }
@@ -47,7 +51,7 @@ public class CategoriaService {
     public CategoriaDTO buscarCategoriaPorNome(String nome) {
 
         CategoriaEntity categoria = categoriaRepository.findByNomeIgnoreCase(nome)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Categoria não encontrada"));
+                .orElseThrow(() -> new NotFoundException("Categoria não encontrada!"));
 
         return categoriaMapper.toDto(categoria);
     }
@@ -56,7 +60,7 @@ public class CategoriaService {
     public CategoriaDTO editarCategoria(Long id, CategoriaDTO categoriaDTO) {
 
         CategoriaEntity existente = categoriaRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,"Categoria não encontrada!"));
+                .orElseThrow(() -> new NotFoundException("Categoria não encontrada!"));
 
         existente.setNome(categoriaDTO.getNome());
 
@@ -66,7 +70,7 @@ public class CategoriaService {
     public void excluirCategoria(Long id) {
       
         if (!categoriaRepository.existsById(id)) {
-            throw new NoSuchElementException("Categoria não encontrada");
+            throw new NotFoundException("Categoria não encontrada!");
         }
 
         categoriaRepository.deleteById(id);

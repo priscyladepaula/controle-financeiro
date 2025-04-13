@@ -2,6 +2,8 @@ package br.com.priscyladepaula.desafioitau.service;
 
 import br.com.priscyladepaula.desafioitau.domain.SubcategoriaEntity;
 import br.com.priscyladepaula.desafioitau.dto.SubcategoriaDTO;
+import br.com.priscyladepaula.desafioitau.exception.NotFoundException;
+import br.com.priscyladepaula.desafioitau.exception.OperacaoInvalidaException;
 import br.com.priscyladepaula.desafioitau.infrastructure.LancamentoRepository;
 import br.com.priscyladepaula.desafioitau.infrastructure.SubcategoriaRepository;
 import br.com.priscyladepaula.desafioitau.mapper.SubcategoriaMapper;
@@ -43,7 +45,7 @@ public class SubcategoriaService {
     public SubcategoriaDTO buscarSubcategoriaPorId(Long id) {
 
         SubcategoriaEntity subcategoria = subcategoriaRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Subcategoria não encontrada!"));
+                .orElseThrow(() -> new NotFoundException("Subcategoria não encontrada!"));
 
         return subcategoriaMapper.toDto(subcategoria);
     }
@@ -51,7 +53,7 @@ public class SubcategoriaService {
     public SubcategoriaDTO buscarPorNome(String nome) {
 
         SubcategoriaEntity subcategoria = subcategoriaRepository.findByNomeIgnoreCase(nome)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Subcategoria não encontrada!"));
+                .orElseThrow(() -> new NotFoundException("Subcategoria não encontrada!"));
 
         return subcategoriaMapper.toDto(subcategoria);
     }
@@ -59,7 +61,7 @@ public class SubcategoriaService {
     public SubcategoriaDTO editarSubcategoria(Long id, SubcategoriaDTO subcategoriaDTO) {
 
         SubcategoriaEntity existente = subcategoriaRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Subcategoria não encontrada!"));
+                .orElseThrow(() -> new NotFoundException("Subcategoria não encontrada!"));
 
         existente.setNome(subcategoriaDTO.getNome());
 
@@ -69,7 +71,7 @@ public class SubcategoriaService {
     public void excluirSubcategoria(Long id) {
 
         if (lancamentoRepository.existsBySubcategoriaId(id)) {
-            throw new DataIntegrityViolationException("Não é possível excluir a subcategoria, pois há lançamentos atrelados a ela.");
+            throw new OperacaoInvalidaException("Não é possível excluir a subcategoria, pois há lançamentos vinculados a ela.");
         }
 
         subcategoriaRepository.deleteById(id);

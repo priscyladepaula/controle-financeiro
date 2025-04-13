@@ -7,6 +7,8 @@ import br.com.priscyladepaula.desafioitau.dto.BalancoDTO;
 import br.com.priscyladepaula.desafioitau.dto.CategoriaDTO;
 import br.com.priscyladepaula.desafioitau.dto.LancamentoDTO;
 import br.com.priscyladepaula.desafioitau.exception.CustomException;
+import br.com.priscyladepaula.desafioitau.exception.NotFoundException;
+import br.com.priscyladepaula.desafioitau.exception.ValidationException;
 import br.com.priscyladepaula.desafioitau.infrastructure.CategoriaRepository;
 import br.com.priscyladepaula.desafioitau.infrastructure.LancamentoRepository;
 import br.com.priscyladepaula.desafioitau.infrastructure.SubcategoriaRepository;
@@ -51,10 +53,10 @@ public class LancamentoService {
         LancamentoEntity lancamento = lancamentoMapper.toEntity(lancamentoDTO);
 
         SubcategoriaEntity subcategoria = subcategoriaRepository.findById(lancamentoDTO.getIdSubcategoria())
-                .orElseThrow(() -> new CustomException("Subcategoria não encontrada"));
+                .orElseThrow(() -> new NotFoundException("Subcategoria não encontrada"));
 
         if(lancamentoDTO.getValor() == null || lancamentoDTO.getValor().compareTo(BigDecimal.ZERO) == 0) {
-            throw new CustomException("O valor não pode ser zero.");
+            throw new ValidationException("O valor não pode ser zero.");
         }
 
         LancamentoEntity lancamentoSalvo = lancamentoRepository.save(lancamento);
@@ -65,7 +67,7 @@ public class LancamentoService {
     public LancamentoDTO buscarPorSubcategoria(Long idSubcategoria) {
 
         LancamentoEntity lancamento = lancamentoRepository.findBySubcategoriaId(idSubcategoria)
-                .orElseThrow(() -> new CustomException("Lançamento não encontrado!"));
+                .orElseThrow(() -> new NotFoundException("Lançamento não encontrado!"));
 
         return lancamentoMapper.toDto(lancamento);
     }
@@ -74,10 +76,10 @@ public class LancamentoService {
     public LancamentoDTO editarLancamento(Long id, LancamentoDTO lancamentoDTO) {
 
         LancamentoEntity existente = lancamentoRepository.findById(id)
-                .orElseThrow(() -> new CustomException("Lançamento não encontrado!"));
+                .orElseThrow(() -> new NotFoundException("Lançamento não encontrado!"));
 
         SubcategoriaEntity subcategoria = subcategoriaRepository.findById(lancamentoDTO.getIdSubcategoria())
-                .orElseThrow(() -> new CustomException("Subcategoria não encontrada!"));
+                .orElseThrow(() -> new NotFoundException("Subcategoria não encontrada!"));
 
         existente.setValor(lancamentoDTO.getValor());
         existente.setComentario(lancamentoDTO.getComentario());
@@ -120,7 +122,7 @@ public class LancamentoService {
     public void excluirLancamento(Long id) {
 
         LancamentoEntity lancamento = lancamentoRepository.findById(id)
-                .orElseThrow(() -> new CustomException("Lançamento não encontrado!"));
+                .orElseThrow(() -> new NotFoundException("Lançamento não encontrado!"));
 
         lancamentoRepository.delete(lancamento);
     }
