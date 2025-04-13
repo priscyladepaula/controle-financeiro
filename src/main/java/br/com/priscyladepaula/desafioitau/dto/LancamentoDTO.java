@@ -20,7 +20,7 @@ public class LancamentoDTO {
     private BigDecimal valor;
 
     @JsonProperty("id_subcategoria")
-    @Digits(integer = 10, fraction = 0, message = "O campo 'id_subcategoria' deve conter apenas números inteiros")
+    @NotNull(message = "O campo 'id_subcategoria' é obrigatório")
     private Long idSubcategoria;
 
     private String comentario;
