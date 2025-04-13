@@ -13,7 +13,6 @@ import java.io.IOException;
 @Component
 public class ApiKeyFilter extends OncePerRequestFilter {
 
-    @Value("${api.key}")
     private String apiKey;
 
     private static final String API_KEY_HEADER = "api-key";

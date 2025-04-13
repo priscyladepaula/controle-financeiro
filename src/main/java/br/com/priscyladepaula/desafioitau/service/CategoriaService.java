@@ -64,7 +64,7 @@ public class CategoriaService {
     }
 
     public void excluirCategoria(Long id) {
-
+      
         if (!categoriaRepository.existsById(id)) {
             throw new NoSuchElementException("Categoria não encontrada");
         }
