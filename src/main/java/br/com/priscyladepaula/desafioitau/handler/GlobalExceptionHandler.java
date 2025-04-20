@@ -34,12 +34,20 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(err);
     }
 
-    @ExceptionHandler(OperacaoInvalidaException.class)
-    public ResponseEntity<ErroDTO> tratarErroOperacaoInvalida(OperacaoInvalidaException ex) {
+    @ExceptionHandler(InvalidOperationException.class)
+    public ResponseEntity<ErroDTO> tratarErroOperacaoInvalida(InvalidOperationException ex) {
 
         ErroDTO err = new ErroDTO("erro_operacao_invalida", ex.getMessage());
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(err);
+    }
+
+    @ExceptionHandler(DuplicationException.class)
+    public ResponseEntity<ErroDTO> tratarErroDuplicidade(DuplicationException ex) {
+
+        ErroDTO err = new ErroDTO("erro_duplicidade", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(err);
     }
 
 }

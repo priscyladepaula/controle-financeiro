@@ -11,11 +11,10 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface LancamentoMapper {
 
-    LancamentoMapper INSTANCE = Mappers.getMapper(LancamentoMapper.class);
-
     @Mapping(source = "subcategoria.id", target = "idSubcategoria")
     LancamentoDTO toDto(LancamentoEntity lancamentoEntity);
 
+    @Mapping(target = "subcategoria", ignore = true)
     LancamentoEntity toEntity(LancamentoDTO dto);
 
     List<LancamentoEntity> toEntityList(List<LancamentoDTO> dtos);
