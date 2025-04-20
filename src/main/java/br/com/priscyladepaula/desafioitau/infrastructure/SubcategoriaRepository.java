@@ -14,5 +14,7 @@ public interface SubcategoriaRepository extends JpaRepository<SubcategoriaEntity
 
     boolean existsByIdAndLancamentosIsNotEmpty(Long idLancamento);
 
+    boolean existsByNome(String nome);
+
     Optional<SubcategoriaEntity> findByNomeIgnoreCase(String nome);
 }

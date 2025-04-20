@@ -11,12 +11,11 @@ import java.util.List;
 @Mapper(componentModel = "spring", uses = {CategoriaMapper.class})
 public interface SubcategoriaMapper {
 
-    SubcategoriaMapper INSTANCE = Mappers.getMapper(SubcategoriaMapper.class);
-
     @Mapping(source = "categoria.id", target = "idCategoria")
     SubcategoriaDTO toDto(SubcategoriaEntity subcategoria);
 
     @Mapping(source = "idCategoria", target = "categoria.id")
+    @Mapping(target = "lancamentos", ignore = true)
     SubcategoriaEntity toEntity(SubcategoriaDTO subcategoriaDTO);
 
     List<SubcategoriaDTO> toDtoList(List<SubcategoriaEntity> subcategorias);

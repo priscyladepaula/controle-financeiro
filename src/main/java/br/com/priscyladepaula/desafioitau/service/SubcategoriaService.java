@@ -2,15 +2,14 @@ package br.com.priscyladepaula.desafioitau.service;
 
 import br.com.priscyladepaula.desafioitau.domain.SubcategoriaEntity;
 import br.com.priscyladepaula.desafioitau.dto.SubcategoriaDTO;
+import br.com.priscyladepaula.desafioitau.exception.DuplicationException;
 import br.com.priscyladepaula.desafioitau.exception.NotFoundException;
-import br.com.priscyladepaula.desafioitau.exception.OperacaoInvalidaException;
+import br.com.priscyladepaula.desafioitau.exception.InvalidOperationException;
+import br.com.priscyladepaula.desafioitau.exception.ValidationException;
 import br.com.priscyladepaula.desafioitau.infrastructure.LancamentoRepository;
 import br.com.priscyladepaula.desafioitau.infrastructure.SubcategoriaRepository;
 import br.com.priscyladepaula.desafioitau.mapper.SubcategoriaMapper;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -28,6 +27,14 @@ public class SubcategoriaService {
     }
 
     public SubcategoriaDTO criarSubcategoria(SubcategoriaDTO subcategoriaDTO) {
+
+        if(subcategoriaRepository.existsByNome(subcategoriaDTO.getNome())){
+            throw new DuplicationException("Já existe subcategoria com este nome!");
+        } if(subcategoriaDTO.getNome() == null || subcategoriaDTO.getNome().isEmpty()){
+            throw new ValidationException("O campo 'nome' é obrigatório.");
+        } if(subcategoriaDTO.getIdCategoria() == null || subcategoriaDTO.getIdCategoria() == 0){
+            throw new ValidationException("Selecione uma categoria existente!");
+        }
 
         SubcategoriaEntity subcategoria = subcategoriaMapper.toEntity(subcategoriaDTO);
         SubcategoriaEntity subcategoriaSalva = subcategoriaRepository.save(subcategoria);
@@ -71,7 +78,7 @@ public class SubcategoriaService {
     public void excluirSubcategoria(Long id) {
 
         if (lancamentoRepository.existsBySubcategoriaId(id)) {
-            throw new OperacaoInvalidaException("Não é possível excluir a subcategoria, pois há lançamentos vinculados a ela.");
+            throw new InvalidOperationException("Não é possível excluir a subcategoria, pois há lançamentos vinculados a ela.");
         }
 
         subcategoriaRepository.deleteById(id);

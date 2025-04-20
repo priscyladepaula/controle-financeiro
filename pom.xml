@@ -145,6 +145,8 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
+                    <jvmArguments>-Djdk.instrument.traceUsage</jvmArguments>
+                    <jvmArguments>-XX:+EnableDynamicAgentLoading</jvmArguments>
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>
