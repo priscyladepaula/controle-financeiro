@@ -1,30 +1,21 @@
 package br.com.priscyladepaula.desafioitau.service;
 
-import br.com.priscyladepaula.desafioitau.domain.CategoriaEntity;
 import br.com.priscyladepaula.desafioitau.domain.LancamentoEntity;
 import br.com.priscyladepaula.desafioitau.domain.SubcategoriaEntity;
 import br.com.priscyladepaula.desafioitau.dto.BalancoDTO;
 import br.com.priscyladepaula.desafioitau.dto.CategoriaDTO;
 import br.com.priscyladepaula.desafioitau.dto.LancamentoDTO;
-import br.com.priscyladepaula.desafioitau.exception.CustomException;
 import br.com.priscyladepaula.desafioitau.exception.NotFoundException;
-import br.com.priscyladepaula.desafioitau.exception.ValidationException;
 import br.com.priscyladepaula.desafioitau.infrastructure.CategoriaRepository;
 import br.com.priscyladepaula.desafioitau.infrastructure.LancamentoRepository;
 import br.com.priscyladepaula.desafioitau.infrastructure.SubcategoriaRepository;
 import br.com.priscyladepaula.desafioitau.mapper.LancamentoMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import br.com.priscyladepaula.desafioitau.validation.ValidationRules;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class LancamentoService {
@@ -50,14 +41,18 @@ public class LancamentoService {
 
     public LancamentoDTO criarLancamento(LancamentoDTO lancamentoDTO) {
 
+        ValidationRules.com(lancamentoDTO)
+                .validNumber(LancamentoDTO::getValor, "O campo 'valor' deve ser diferente de zero.")
+                .validId(LancamentoDTO::getIdSubcategoria, "Selecione uma subcategoria válida!")
+                .defaultDateIfNull(LancamentoDTO::getData, LancamentoDTO::setData, LocalDate::now)
+                .execute();
+
         LancamentoEntity lancamento = lancamentoMapper.toEntity(lancamentoDTO);
 
         SubcategoriaEntity subcategoria = subcategoriaRepository.findById(lancamentoDTO.getIdSubcategoria())
                 .orElseThrow(() -> new NotFoundException("Subcategoria não encontrada"));
 
-        if(lancamentoDTO.getValor() == null || lancamentoDTO.getValor().compareTo(BigDecimal.ZERO) == 0) {
-            throw new ValidationException("O valor não pode ser zero.");
-        }
+        lancamento.setSubcategoria(subcategoria);
 
         LancamentoEntity lancamentoSalvo = lancamentoRepository.save(lancamento);
 
@@ -93,6 +88,8 @@ public class LancamentoService {
     }
 
     public BalancoDTO calcularBalanco(LocalDate dataInicial, LocalDate dataFinal, Long idCategoria) {
+
+        ValidationRules.validPeriod(dataInicial, dataFinal, "Data final não pode ser maior que a inicial!");
 
         //If ternário
         List<LancamentoEntity> lancamentos = (idCategoria != null)

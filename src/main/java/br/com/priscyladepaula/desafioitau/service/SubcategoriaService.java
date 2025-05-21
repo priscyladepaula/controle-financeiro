@@ -1,14 +1,16 @@
 package br.com.priscyladepaula.desafioitau.service;
 
+import br.com.priscyladepaula.desafioitau.domain.CategoriaEntity;
 import br.com.priscyladepaula.desafioitau.domain.SubcategoriaEntity;
 import br.com.priscyladepaula.desafioitau.dto.SubcategoriaDTO;
 import br.com.priscyladepaula.desafioitau.exception.DuplicationException;
 import br.com.priscyladepaula.desafioitau.exception.NotFoundException;
 import br.com.priscyladepaula.desafioitau.exception.InvalidOperationException;
-import br.com.priscyladepaula.desafioitau.exception.ValidationException;
+import br.com.priscyladepaula.desafioitau.infrastructure.CategoriaRepository;
 import br.com.priscyladepaula.desafioitau.infrastructure.LancamentoRepository;
 import br.com.priscyladepaula.desafioitau.infrastructure.SubcategoriaRepository;
 import br.com.priscyladepaula.desafioitau.mapper.SubcategoriaMapper;
+import br.com.priscyladepaula.desafioitau.validation.ValidationRules;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,21 +21,27 @@ public class SubcategoriaService {
     private final SubcategoriaRepository subcategoriaRepository;
     private final SubcategoriaMapper subcategoriaMapper;
     private final LancamentoRepository lancamentoRepository;
+    private final CategoriaRepository categoriaRepository;
 
-    public SubcategoriaService(SubcategoriaRepository subcategoriaRepository, LancamentoRepository lancamentoRepository, SubcategoriaMapper subcategoriaMapper) {
+    public SubcategoriaService(SubcategoriaRepository subcategoriaRepository, LancamentoRepository lancamentoRepository, SubcategoriaMapper subcategoriaMapper, CategoriaRepository categoriaRepository) {
         this.subcategoriaRepository = subcategoriaRepository;
         this.lancamentoRepository = lancamentoRepository;
         this.subcategoriaMapper = subcategoriaMapper;
+        this.categoriaRepository = categoriaRepository;
     }
 
     public SubcategoriaDTO criarSubcategoria(SubcategoriaDTO subcategoriaDTO) {
 
+        CategoriaEntity existente = categoriaRepository.findById(subcategoriaDTO.getIdCategoria())
+                .orElseThrow(() -> new NotFoundException("Categoria não encontrada!"));
+
+        ValidationRules.com(subcategoriaDTO)
+                .notEmpty(SubcategoriaDTO::getNome, "O campo 'nome' é obrigatório.")
+                .validId(SubcategoriaDTO::getIdCategoria, "Selecione uma categoria existente!")
+                .execute();
+
         if(subcategoriaRepository.existsByNome(subcategoriaDTO.getNome())){
             throw new DuplicationException("Já existe subcategoria com este nome!");
-        } if(subcategoriaDTO.getNome() == null || subcategoriaDTO.getNome().isEmpty()){
-            throw new ValidationException("O campo 'nome' é obrigatório.");
-        } if(subcategoriaDTO.getIdCategoria() == null || subcategoriaDTO.getIdCategoria() == 0){
-            throw new ValidationException("Selecione uma categoria existente!");
         }
 
         SubcategoriaEntity subcategoria = subcategoriaMapper.toEntity(subcategoriaDTO);
@@ -69,6 +77,15 @@ public class SubcategoriaService {
 
         SubcategoriaEntity existente = subcategoriaRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Subcategoria não encontrada!"));
+
+        ValidationRules.com(subcategoriaDTO)
+                .notEmpty(SubcategoriaDTO::getNome, "O campo 'nome' é obrigatório.")
+                .validId(SubcategoriaDTO::getIdCategoria, "Selecione uma categoria existente!")
+                .execute();
+
+        if(subcategoriaRepository.existsByNome(subcategoriaDTO.getNome())){
+            throw new DuplicationException("Já existe subcategoria com este nome!");
+        }
 
         existente.setNome(subcategoriaDTO.getNome());
 

@@ -1,7 +1,7 @@
 package br.com.priscyladepaula.desafioitau.controller;
 
+import br.com.priscyladepaula.desafioitau.annotations.BrazilianDateFormat;
 import br.com.priscyladepaula.desafioitau.dto.BalancoDTO;
-import br.com.priscyladepaula.desafioitau.service.BalancoService;
 import br.com.priscyladepaula.desafioitau.service.LancamentoService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -23,8 +23,8 @@ public class BalancoController {
     }
 
     @GetMapping
-    public ResponseEntity<BalancoDTO> calcularBalanco(@Valid @RequestParam("data_inicio") LocalDate dataInicial,
-                                                      @RequestParam("data_fim") LocalDate dataFinal,
+    public ResponseEntity<BalancoDTO> calcularBalanco(@Valid @RequestParam("data_inicio") @BrazilianDateFormat LocalDate dataInicial,
+                                                      @RequestParam("data_fim") @BrazilianDateFormat LocalDate dataFinal,
                                                       @RequestParam(value = "id_categoria", required = false) Long idCategoria) {
 
         BalancoDTO balancoDTO = lancamentoService.calcularBalanco(dataInicial, dataFinal, idCategoria);
