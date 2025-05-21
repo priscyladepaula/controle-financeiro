@@ -2,6 +2,7 @@ package br.com.priscyladepaula.desafioitau.service;
 
 import br.com.priscyladepaula.desafioitau.domain.CategoriaEntity;
 import br.com.priscyladepaula.desafioitau.dto.CategoriaDTO;
+import br.com.priscyladepaula.desafioitau.dto.SubcategoriaDTO;
 import br.com.priscyladepaula.desafioitau.exception.DuplicationException;
 import br.com.priscyladepaula.desafioitau.exception.InvalidOperationException;
 import br.com.priscyladepaula.desafioitau.exception.NotFoundException;
@@ -9,6 +10,7 @@ import br.com.priscyladepaula.desafioitau.exception.ValidationException;
 import br.com.priscyladepaula.desafioitau.handler.GlobalExceptionHandler;
 import br.com.priscyladepaula.desafioitau.infrastructure.CategoriaRepository;
 import br.com.priscyladepaula.desafioitau.mapper.CategoriaMapper;
+import br.com.priscyladepaula.desafioitau.validation.ValidationRules;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -31,10 +33,12 @@ public class CategoriaService {
 
     public CategoriaDTO criarCategoria(CategoriaDTO categoriaDTO) {
 
+        ValidationRules.com(categoriaDTO)
+                .notEmpty(CategoriaDTO::getNome, "O campo 'nome' é obrigatório.")
+                .execute();
+
         if(categoriaRepository.existsByNome(categoriaDTO.getNome())){
             throw new DuplicationException("Já existe categoria com este nome!");
-        } if (categoriaDTO.getNome() == null || categoriaDTO.getNome().isEmpty()){
-            throw new ValidationException("O campo 'nome' é obrigatório.");
         }
 
         CategoriaEntity categoria = categoriaMapper.toEntity(categoriaDTO);
@@ -70,6 +74,10 @@ public class CategoriaService {
 
         CategoriaEntity existente = categoriaRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Categoria não encontrada!"));
+
+        ValidationRules.com(categoriaDTO)
+                .notEmpty(CategoriaDTO::getNome, "O campo 'nome' é obrigatório.")
+                .execute();
 
         existente.setNome(categoriaDTO.getNome());
 

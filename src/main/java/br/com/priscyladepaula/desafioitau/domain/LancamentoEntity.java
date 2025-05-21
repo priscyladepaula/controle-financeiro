@@ -1,5 +1,6 @@
 package br.com.priscyladepaula.desafioitau.domain;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -19,8 +20,7 @@ public class LancamentoEntity {
     @Column(nullable = false)
     private BigDecimal valor;
 
-    @Column(nullable = false)
-    private LocalDate data = LocalDate.now();
+    private LocalDate data;
 
     @ManyToOne
     @JoinColumn(name = "id_subcategoria", nullable = false)
