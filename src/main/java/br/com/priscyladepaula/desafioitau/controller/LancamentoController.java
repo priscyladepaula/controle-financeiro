@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/v1")
+@RequestMapping("/v1/lancamentos")
 public class LancamentoController {
 
     private final LancamentoService lancamentoService;
@@ -18,34 +18,33 @@ public class LancamentoController {
         this.lancamentoService = lancamentoService;
     }
 
-    @GetMapping("/lancamentos")
+    @GetMapping
     public ResponseEntity<List<LancamentoDTO>> listarLancamentos() {
-        List<LancamentoDTO> lancamentos = lancamentoService.listarLancamentos();
 
-        return ResponseEntity.ok(lancamentos);
+        return ResponseEntity.ok(lancamentoService.listarLancamentos());
     }
 
-    @GetMapping("/lancamentos/buscar")
-    public ResponseEntity<List<LancamentoDTO>> buscarLancamentoPorSubcategoria(@RequestParam Long idSubcategoria) {
+    @GetMapping("/buscar")
+    public ResponseEntity<LancamentoDTO> buscarLancamentoPorSubcategoria(@RequestParam Long idSubcategoria) {
 
         return ResponseEntity.ok(lancamentoService.buscarPorSubcategoria(idSubcategoria));
     }
 
-    @PostMapping("/lancamentos")
+    @PostMapping
     public ResponseEntity<LancamentoDTO> criarLancamento(@RequestBody LancamentoDTO lancamentoDTO) {
         LancamentoDTO novoLancamentoDTO = lancamentoService.criarLancamento(lancamentoDTO);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(novoLancamentoDTO);
     }
 
-    @PutMapping("/lancamentos/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<LancamentoDTO> editarLancamento(@PathVariable Long id, @RequestBody LancamentoDTO lancamentoDTO) {
         LancamentoDTO lancamentoAtualizado = lancamentoService.editarLancamento(id, lancamentoDTO);
 
         return ResponseEntity.status(HttpStatus.OK).body(lancamentoAtualizado);
     }
 
-    @DeleteMapping("/lancamentos/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluirLancamento(@PathVariable Long id) {
         lancamentoService.excluirLancamento(id);
 

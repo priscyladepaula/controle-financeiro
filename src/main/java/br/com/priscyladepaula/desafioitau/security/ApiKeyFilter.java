@@ -1,10 +1,13 @@
 package br.com.priscyladepaula.desafioitau.security;
 
+import br.com.priscyladepaula.desafioitau.exception.ApiKeyExceptionUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -12,6 +15,9 @@ import java.io.IOException;
 
 @Component
 public class ApiKeyFilter extends OncePerRequestFilter {
+
+    @Autowired
+    private ApiKeyExceptionUtils apiExceptionUtils;
 
     private String apiKey;
 
@@ -30,10 +36,11 @@ public class ApiKeyFilter extends OncePerRequestFilter {
         }
 
         if (apiKey == null || !apiKey.equals(apiKey)) {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            response.setContentType("application/json");
-            response.getWriter().write("{\"codigo\":\"erro_autenticacao\", \"mensagem\":\"Api key incorreta ou ausente.\"}");
-
+            apiExceptionUtils.erroDetalhado(
+                    response, HttpStatus.UNAUTHORIZED,
+                    "erro_autenticacao",
+                    "Api-key inválida ou ausente!"
+            );
             return;
         }
 
